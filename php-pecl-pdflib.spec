@@ -7,13 +7,18 @@
 Summary:        Package for generating PDF files
 Summary(fr):    Extension pour générer des fichiers PDF
 Name:           php-pecl-pdflib
-Version:        2.1.5
+Version:        2.1.6
 Release:        1%{?dist}
 License:        PHP
 Group:          Development/Languages
 URL:            http://pecl.php.net/package/pdflib
 
 Source:         http://pecl.php.net/get/pdflib-%{version}.tgz
+
+# See http://pecl.php.net/bugs/bug.php?id=16066
+# http://cvs.php.net/viewvc.cgi/pecl/pdf/php_pdflib.h?view=co
+Source1:        php_pdflib.h
+
 Source2:        xml2changelog
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -49,7 +54,8 @@ http://www.pdflib.com/developer-center/technical-documentation/php-howto
 %{_bindir}/php -n %{SOURCE2} package.xml >CHANGELOG
 
 cd pdflib-%{version}
-
+# Missing file
+cp %{SOURCE1} .
 
 %build
 cd pdflib-%{version}
@@ -103,6 +109,15 @@ fi
 
 
 %changelog
+* Thu Mar 19 2009 Remi Collet <RPMS@FamilleCollet.com> 2.1.6-1
+- update to 2.1.6
+
+* Sun Sep 28 2008 Thorsten Leemhuis <fedora [AT] leemhuis [DOT] info - 2.1.5-2
+- rebuild
+
+* Fri Mar 28 2008 Remi Collet <RPMS@FamilleCollet.com> 2.1.5-2
+- rebuild against pdflib-lite-7.0.3
+
 * Sat Mar 15 2008 Remi Collet <RPMS@FamilleCollet.com> 2.1.5-1
 - update to 2.1.5
 
