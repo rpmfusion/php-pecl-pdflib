@@ -8,7 +8,7 @@ Summary:        Package for generating PDF files
 Summary(fr):    Extension pour générer des fichiers PDF
 Name:           php-pecl-pdflib
 Version:        2.1.6
-Release:        1%{?dist}
+Release:        1%{?dist}.1
 License:        PHP
 Group:          Development/Languages
 URL:            http://pecl.php.net/package/pdflib
