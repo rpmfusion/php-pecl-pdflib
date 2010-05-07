@@ -2,13 +2,13 @@
 %{!?php_extdir: %{expand: %%global php_extdir %(php-config --extension-dir)}}
 %{!?php_apiver: %{expand: %%global php_apiver  %((echo 0; php -i 2>/dev/null | sed -n 's/^PHP API => //p') | tail -1)}}
 
-%define pecl_name pdflib
+%global pecl_name pdflib
 
 Summary:        Package for generating PDF files
 Summary(fr):    Extension pour générer des fichiers PDF
 Name:           php-pecl-pdflib
-Version:        2.1.7
-Release:        2%{?dist}
+Version:        2.1.8
+Release:        1%{?dist}
 License:        PHP
 Group:          Development/Languages
 URL:            http://pecl.php.net/package/pdflib
@@ -38,7 +38,7 @@ http://www.pdflib.com/developer-center/technical-documentation/php-howto
 
 
 %description -l fr
-Cette extension PHP fournit une interface sur la biliothèque de développement
+Cette extension PHP fournit une interface sur la bibliothèque de développement
 PDFlib pour générer des fichiers PDF à la volée.
 
 Plus d'informations sur l'utilisation de PDFlib avec PHP sur
@@ -104,6 +104,9 @@ fi
 
 
 %changelog
+* Thu May 06 2010 Remi Collet <rpmfusion@FamilleCollet.com> 2.1.8-1
+- update to 2.1.8
+
 * Sat Oct 24 2009 Remi Collet <rpmfusion@FamilleCollet.com> 2.1.7-2
 - rebuild
 
