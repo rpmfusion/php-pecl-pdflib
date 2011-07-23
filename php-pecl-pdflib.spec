@@ -9,7 +9,7 @@ Summary:        Package for generating PDF files
 Summary(fr):    Extension pour générer des fichiers PDF
 Name:           php-pecl-pdflib
 Version:        2.1.8
-Release:        2%{?dist}
+Release:        2%{?dist}.1
 License:        PHP
 Group:          Development/Languages
 URL:            http://pecl.php.net/package/pdflib
@@ -90,7 +90,7 @@ cd %{pecl_name}-%{version}
 php -n \
     -d extension_dir=modules \
     -d extension=%{extname}.so \
-    --modules | grep %{extname}
+    -m | grep %{extname}
 
 
 %if 0%{?pecl_install:1}
@@ -120,7 +120,10 @@ fi
 
 
 %changelog
-* Sat Jul 23 2013 Remi Collet <rpmfusion@FamilleCollet.com> 2.1.8-1
+* Sat Jul 23 2011 Remi Collet <rpmfusion@FamilleCollet.com> 2.1.8-2.1
+- fix %%check (php 5.1 doesnt have --modules)
+
+* Sat Jul 23 2011 Remi Collet <rpmfusion@FamilleCollet.com> 2.1.8-2
 - fix private-shared-object-provides rpmlint warning
 - fix macro usage
 - add %%check, minimal load test
