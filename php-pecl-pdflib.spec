@@ -3,12 +3,13 @@
 %{!?php_apiver: %{expand: %%global php_apiver  %((echo 0; php -i 2>/dev/null | sed -n 's/^PHP API => //p') | tail -1)}}
 
 %global pecl_name pdflib
+%global extname   pdf
 
 Summary:        Package for generating PDF files
 Summary(fr):    Extension pour générer des fichiers PDF
 Name:           php-pecl-pdflib
 Version:        2.1.8
-Release:        1%{?dist}
+Release:        2%{?dist}
 License:        PHP
 Group:          Development/Languages
 URL:            http://pecl.php.net/package/pdflib
@@ -22,12 +23,20 @@ Provides:       php-pecl(pdflib) = %{version}-%{release}, php-pdflib = %{version
 BuildRequires:  php-devel, pdflib-lite-devel, php-pear
 Requires(post): %{__pecl}
 Requires(postun): %{__pecl}
-%if %{?php_zend_api}0
+%if 0%{?php_zend_api:1}
 Requires:     php(zend-abi) = %{php_zend_api}
 Requires:     php(api) = %{php_core_api}
 %else
 Requires:     php-api = %{php_apiver}
 %endif
+
+%if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
+%{?filter_setup:
+%filter_provides_in %{php_extdir}/.*\.so$
+%filter_setup
+}
+%endif
+
 
 %description
 This PHP extension wraps the PDFlib programming library
@@ -66,15 +75,22 @@ cd pdflib-%{version}
 
 # Drop in the bit of configuration
 %{__mkdir_p} %{buildroot}%{_sysconfdir}/php.d
-%{__cat} > %{buildroot}%{_sysconfdir}/php.d/pdf.ini << 'EOF'
+%{__cat} > %{buildroot}%{_sysconfdir}/php.d/%{extname}.ini << 'EOF'
 ; Enable PDFlib extension module
-extension=pdf.so
+extension=%{extname}.so
 EOF
 
 # Install XML package description
-# use 'name' rather than 'pecl_name' to avoid conflict with pear extensions
 %{__mkdir_p} %{buildroot}%{pecl_xmldir}
 %{__install} -m 644 ../package.xml %{buildroot}%{pecl_xmldir}/%{name}.xml
+
+
+%check
+cd %{pecl_name}-%{version}
+php -n \
+    -d extension_dir=modules \
+    -d extension=%{extname}.so \
+    --modules | grep %{extname}
 
 
 %if 0%{?pecl_install:1}
@@ -98,12 +114,17 @@ fi
 %files
 %defattr(-, root, root, -)
 %doc CHANGELOG pdflib-%{version}/CREDITS
-%config(noreplace) %{_sysconfdir}/php.d/pdf.ini
-%{php_extdir}/pdf.so
+%config(noreplace) %{_sysconfdir}/php.d/%{extname}.ini
+%{php_extdir}/%{extname}.so
 %{pecl_xmldir}/%{name}.xml
 
 
 %changelog
+* Sat Jul 23 2013 Remi Collet <rpmfusion@FamilleCollet.com> 2.1.8-1
+- fix private-shared-object-provides rpmlint warning
+- fix macro usage
+- add %%check, minimal load test
+
 * Thu May 06 2010 Remi Collet <rpmfusion@FamilleCollet.com> 2.1.8-1
 - update to 2.1.8
 
