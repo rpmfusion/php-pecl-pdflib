@@ -9,7 +9,7 @@ Summary:        Package for generating PDF files
 Summary(fr):    Extension pour générer des fichiers PDF
 Name:           php-pecl-pdflib
 Version:        2.1.8
-Release:        3%{?dist}.1
+Release:        4%{?dist}
 License:        PHP
 Group:          Development/Languages
 URL:            http://pecl.php.net/package/pdflib
@@ -18,24 +18,28 @@ Source:         http://pecl.php.net/get/pdflib-%{version}.tgz
 
 Source2:        xml2changelog
 
+# https://bugs.php.net/60397 php 5.4 build
+Patch0:         pdflib-php54.patch
+
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-Provides:       php-pecl(pdflib) = %{version}-%{release}, php-pdflib = %{version}-%{release}
 BuildRequires:  php-devel, pdflib-lite-devel, php-pear
+
 Requires(post): %{__pecl}
 Requires(postun): %{__pecl}
 %if 0%{?php_zend_api:1}
-Requires:     php(zend-abi) = %{php_zend_api}
-Requires:     php(api) = %{php_core_api}
+Requires:       php(zend-abi) = %{php_zend_api}
+Requires:       php(api) = %{php_core_api}
 %else
-Requires:     php-api = %{php_apiver}
+Requires:       php-api = %{php_apiver}
 %endif
+Provides:       php-pecl(pdflib) = %{version}-%{release}
+Provides:       php-pdflib = %{version}-%{release}
 
-%if 0%{?fedora} >= 11 || 0%{?rhel} >= 6
-%{?filter_setup:
-%filter_provides_in %{php_extdir}/.*\.so$
-%filter_setup
-}
-%endif
+# RPM 4.8
+%{?filter_provides_in: %filter_provides_in %{_libdir}/.*\.so$}
+%{?filter_setup}
+# RPM 4.9
+%global __provides_exclude_from %{?__provides_exclude_from:%__provides_exclude_from|}%{_libdir}/.*\\.so$
 
 
 %description
@@ -58,31 +62,38 @@ http://www.pdflib.com/developer-center/technical-documentation/php-howto
 %setup -c -q
 %{_bindir}/php -n %{SOURCE2} package.xml >CHANGELOG
 
-cd pdflib-%{version}
+%patch0 -p0 -b .php54
+
+# Check version
+extver=$(sed -n '/#define PHP_PDFLIB_VERSION/{s/.* "//;s/".*$//;p}' %{pecl_name}-%{version}/php_pdflib.h)
+if test "x${extver}" != "x%{version}"; then
+   : Error: Upstream version is ${extver}, expecting %{version}.
+   exit 1
+fi
 
 
 %build
 cd pdflib-%{version}
 phpize
 %configure
-%{__make} %{?_smp_mflags}
+make %{?_smp_mflags}
 
 
 %install
 cd pdflib-%{version}
-%{__rm} -rf %{buildroot}
-%{__make} install INSTALL_ROOT=%{buildroot}
+rm -rf %{buildroot}
+make install INSTALL_ROOT=%{buildroot}
 
 # Drop in the bit of configuration
-%{__mkdir_p} %{buildroot}%{_sysconfdir}/php.d
-%{__cat} > %{buildroot}%{_sysconfdir}/php.d/%{extname}.ini << 'EOF'
+mkdir -p %{buildroot}%{_sysconfdir}/php.d
+cat > %{buildroot}%{_sysconfdir}/php.d/%{extname}.ini << 'EOF'
 ; Enable PDFlib extension module
 extension=%{extname}.so
 EOF
 
 # Install XML package description
-%{__mkdir_p} %{buildroot}%{pecl_xmldir}
-%{__install} -m 644 ../package.xml %{buildroot}%{pecl_xmldir}/%{name}.xml
+mkdir -p %{buildroot}%{pecl_xmldir}
+install -m 644 ../package.xml %{buildroot}%{pecl_xmldir}/%{name}.xml
 
 
 %check
@@ -108,7 +119,7 @@ fi
 
 
 %clean
-%{__rm} -rf %{buildroot}
+rm -rf %{buildroot}
 
 
 %files
@@ -120,6 +131,10 @@ fi
 
 
 %changelog
+* Wed May 02 2012 Remi Collet <rpmfusion@FamilleCollet.com> 2.1.8-4
+- add patch for php 5.4
+- fix filter for private .so
+
 * Thu Feb 09 2012 Nicolas Chauvet <kwizart@gmail.com> - 2.1.8-3.1
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_17_Mass_Rebuild
 
