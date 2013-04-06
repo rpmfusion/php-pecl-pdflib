@@ -1,7 +1,5 @@
 %{!?__pecl:     %{expand: %%global __pecl     %{_bindir}/pecl}}
 %{!?php_inidir: %{expand: %%global php_inidir %{_sysconfdir}/php.d}}
-%{!?php_extdir: %{expand: %%global php_extdir %(php-config --extension-dir)}}
-%{!?php_apiver: %{expand: %%global php_apiver %((echo 0; php -i 2>/dev/null | sed -n 's/^PHP API => //p') | tail -1)}}
 
 %global pecl_name pdflib
 %global extname   pdf
@@ -10,7 +8,7 @@ Summary:        Package for generating PDF files
 Summary(fr):    Extension pour générer des fichiers PDF
 Name:           php-pecl-pdflib
 Version:        2.1.9
-Release:        2%{?dist}
+Release:        3%{?dist}
 License:        PHP
 Group:          Development/Languages
 URL:            http://pecl.php.net/package/pdflib
@@ -18,25 +16,23 @@ URL:            http://pecl.php.net/package/pdflib
 Source:         http://pecl.php.net/get/pdflib-%{version}.tgz
 Source2:        xml2changelog
 
-BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-BuildRequires:  php-devel, pdflib-lite-devel, php-pear
+BuildRequires:  php-devel
+BuildRequires:  pdflib-lite-devel
+BuildRequires:  php-pear
 
 Requires(post): %{__pecl}
 Requires(postun): %{__pecl}
-%if 0%{?php_zend_api:1}
 Requires:       php(zend-abi) = %{php_zend_api}
 Requires:       php(api) = %{php_core_api}
-%else
-Requires:       php-api = %{php_apiver}
-%endif
-Provides:       php-pecl(pdflib) = %{version}-%{release}
-Provides:       php-pdflib = %{version}-%{release}
 
-# RPM 4.8
+Provides:       php-%{pecl_name} = %{version}%{?prever}
+Provides:       php-%{pecl_name}%{?_isa} = %{version}%{?prever}
+Provides:       php-pecl(%{pecl_name}) = %{version}%{?prever}
+Provides:       php-pecl(%{pecl_name})%{?_isa} = %{version}%{?prever}
+
+# Filter private shared
 %{?filter_provides_in: %filter_provides_in %{_libdir}/.*\.so$}
 %{?filter_setup}
-# RPM 4.9
-%global __provides_exclude_from %{?__provides_exclude_from:%__provides_exclude_from|}%{_libdir}/.*\\.so$
 
 
 %description
@@ -57,7 +53,7 @@ http://www.pdflib.com/developer-center/technical-documentation/php-howto
 
 %prep 
 %setup -c -q
-%{_bindir}/php -n %{SOURCE2} package.xml >CHANGELOG
+%{_bindir}/php %{SOURCE2} package.xml >CHANGELOG
 
 # Check version
 extver=$(sed -n '/#define PHP_PDFLIB_VERSION/{s/.* "//;s/".*$//;p}' %{pecl_name}-%{version}/php_pdflib.h)
@@ -90,8 +86,6 @@ make %{?_smp_mflags}
 
 
 %install
-rm -rf %{buildroot}
-
 make -C %{pecl_name}-%{version} install-modules INSTALL_ROOT=%{buildroot}
 
 # Drop in the bit of configuration
@@ -120,26 +114,17 @@ install -D -m 644 %{extname}.ini %{buildroot}%{php_ztsinidir}/%{extname}.ini
 %endif
 
 
-%if 0%{?pecl_install:1}
 %post
 %{pecl_install} %{pecl_xmldir}/%{name}.xml >/dev/null || :
-%endif
 
 
-%if 0%{?pecl_uninstall:1}
 %postun
 if [ $1 -eq 0 ] ; then
     %{pecl_uninstall} %{pecl_name} >/dev/null || :
 fi
-%endif
-
-
-%clean
-rm -rf %{buildroot}
 
 
 %files
-%defattr(-, root, root, -)
 %doc CHANGELOG %{pecl_name}-%{version}/CREDITS
 %config(noreplace) %{php_inidir}/%{extname}.ini
 %{php_extdir}/%{extname}.so
@@ -152,6 +137,10 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Sat Apr  6 2013 Remi Collet <remmi@fedorapoject.org> 2.1.9-3
+- rebuild for https://fedoraproject.org/wiki/Features/Php55
+- spec cleanup
+
 * Tue Mar 12 2013 Nicolas Chauvet <kwizart@gmail.com> - 2.1.9-2
 - https://fedoraproject.org/wiki/Fedora_19_Mass_Rebuild
 
